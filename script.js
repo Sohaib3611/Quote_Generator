@@ -18,17 +18,12 @@
 
 // API Configuration
 const API_CONFIG = {
-    BASE_URL: 'https://api.quotable.io',
+    BASE_URL: 'https://zenquotes.io',
     ENDPOINTS: {
-        RANDOM: '/random',
-        QUOTES: '/quotes'
+        RANDOM: '/api/random'
     },
-    // Optional parameters for the API
-    PARAMS: {
-        minLength: 50,  // Minimum quote length for better readability
-        maxLength: 300, // Maximum quote length to fit in UI
-        tags: 'motivational,inspirational,success,wisdom' // Preferred quote categories
-    }
+    // ZenQuotes doesn't support filtering parameters, but provides good inspirational quotes
+    PARAMS: {}
 };
 
 // Twitter sharing configuration
@@ -183,21 +178,31 @@ class QuoteGenerator {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            // Parse JSON response
-            const quoteData = await response.json();
+            // Parse JSON response (ZenQuotes returns an array)
+            const responseData = await response.json();
+            
+            // Extract the first quote from the array
+            const quoteData = Array.isArray(responseData) ? responseData[0] : responseData;
             
             // Validate quote data
             if (!this.validateQuoteData(quoteData)) {
                 throw new Error('Invalid quote data received from API');
             }
 
+            // Convert ZenQuotes format to our internal format
+            const normalizedQuote = {
+                content: quoteData.q,
+                author: quoteData.a,
+                tags: [] // ZenQuotes doesn't provide tags in this format
+            };
+
             // Store current quote
-            currentQuote = quoteData;
+            currentQuote = normalizedQuote;
             
             // Display the quote
-            this.displayQuote(quoteData);
+            this.displayQuote(normalizedQuote);
             
-            console.log('✅ Quote fetched successfully:', quoteData.content.substring(0, 50) + '...');
+            console.log('✅ Quote fetched successfully:', normalizedQuote.content.substring(0, 50) + '...');
 
         } catch (error) {
             console.error('❌ Error fetching quote:', error);
@@ -210,26 +215,11 @@ class QuoteGenerator {
     }
 
     /**
-     * Build API URL with query parameters
+     * Build API URL (ZenQuotes API doesn't require parameters)
      * @returns {string} The complete API URL
      */
     buildApiUrl() {
-        const baseUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RANDOM}`;
-        const params = new URLSearchParams();
-
-        // Add optional parameters if they exist
-        if (API_CONFIG.PARAMS.minLength) {
-            params.append('minLength', API_CONFIG.PARAMS.minLength);
-        }
-        if (API_CONFIG.PARAMS.maxLength) {
-            params.append('maxLength', API_CONFIG.PARAMS.maxLength);
-        }
-        if (API_CONFIG.PARAMS.tags) {
-            params.append('tags', API_CONFIG.PARAMS.tags);
-        }
-
-        const queryString = params.toString();
-        return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+        return `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RANDOM}`;
     }
 
     /**
@@ -262,7 +252,7 @@ class QuoteGenerator {
     }
 
     /**
-     * Validate quote data received from API
+     * Validate quote data received from ZenQuotes API
      * @param {Object} quoteData - The quote data to validate
      * @returns {boolean} True if valid, false otherwise
      */
@@ -270,10 +260,10 @@ class QuoteGenerator {
         return (
             quoteData &&
             typeof quoteData === 'object' &&
-            typeof quoteData.content === 'string' &&
-            quoteData.content.trim().length > 0 &&
-            typeof quoteData.author === 'string' &&
-            quoteData.author.trim().length > 0
+            typeof quoteData.q === 'string' &&
+            quoteData.q.trim().length > 0 &&
+            typeof quoteData.a === 'string' &&
+            quoteData.a.trim().length > 0
         );
     }
 
