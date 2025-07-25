@@ -170,6 +170,19 @@ let currentQuote = null;
 let isLoading = false;
 let currentTheme = 'light';
 
+// Speech synthesis setup
+let speechSynthesis = null;
+let speechSupported = false;
+
+// Initialize speech synthesis
+if ('speechSynthesis' in window) {
+    speechSynthesis = window.speechSynthesis;
+    speechSupported = true;
+    console.log('🔊 Text-to-speech supported');
+} else {
+    console.log('❌ Text-to-speech not supported in this browser');
+}
+
 /**
  * Quote Generator Class
  * Handles all quote-related operations including fetching, displaying, and sharing
@@ -462,8 +475,20 @@ class QuoteGenerator {
             entryElement.className = 'pronunciation-entry';
             entryElement.innerHTML = `
                 <span class="word">${wordData.word}</span>
-                <span class="pronunciation">${wordData.pronunciation}</span>
+                <div class="pronunciation-controls">
+                    <span class="pronunciation">${wordData.pronunciation}</span>
+                    ${speechSupported ? '<button class="speak-btn" aria-label="Listen to pronunciation"><i class="fas fa-volume-up"></i></button>' : ''}
+                </div>
             `;
+            
+            // Add click event for speech synthesis
+            if (speechSupported) {
+                const speakBtn = entryElement.querySelector('.speak-btn');
+                speakBtn.addEventListener('click', () => {
+                    this.pronounceWord(wordData.word);
+                });
+            }
+            
             elements.pronunciationList.appendChild(entryElement);
         });
         
@@ -471,6 +496,57 @@ class QuoteGenerator {
         elements.pronunciationGuide.style.display = 'block';
         
         console.log(`📢 Found ${foundWords.length} complex words with pronunciation guides`);
+    }
+
+    /**
+     * Pronounce a word using text-to-speech
+     * @param {string} word - The word to pronounce
+     */
+    pronounceWord(word) {
+        if (!speechSupported || !speechSynthesis) {
+            this.showToast('Text-to-speech not supported in this browser', 'warning');
+            return;
+        }
+
+        try {
+            // Stop any ongoing speech
+            speechSynthesis.cancel();
+
+            // Create speech utterance
+            const utterance = new SpeechSynthesisUtterance(word);
+            
+            // Configure speech settings
+            utterance.rate = 0.7; // Slower for clarity
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+            
+            // Set language to US English for consistent pronunciation
+            utterance.lang = 'en-US';
+            
+            // Add event listeners
+            utterance.onstart = () => {
+                console.log(`🔊 Speaking: ${word}`);
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('❌ Speech synthesis error:', event.error);
+                this.showToast('Error playing pronunciation', 'error');
+            };
+            
+            utterance.onend = () => {
+                console.log(`✅ Finished speaking: ${word}`);
+            };
+
+            // Speak the word
+            speechSynthesis.speak(utterance);
+            
+            // Show feedback
+            this.showToast(`Playing pronunciation for "${word}"`, 'info');
+
+        } catch (error) {
+            console.error('❌ Error with speech synthesis:', error);
+            this.showToast('Error playing pronunciation', 'error');
+        }
     }
 
     /**

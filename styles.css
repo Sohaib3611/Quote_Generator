@@ -111,6 +111,14 @@
   color: var(--bg-primary);
 }
 
+[data-theme="dark"] .speak-btn {
+  background: #818cf8;
+}
+
+[data-theme="dark"] .speak-btn:hover {
+  background: #6366f1;
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -413,6 +421,12 @@ body {
   font-size: var(--font-size-sm);
 }
 
+.pronunciation-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .pronunciation-entry .pronunciation {
   font-family: 'Courier New', monospace;
   color: var(--primary-color);
@@ -421,6 +435,33 @@ body {
   background: rgba(79, 70, 229, 0.1);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
+}
+
+.speak-btn {
+  background: var(--primary-color);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: white;
+}
+
+.speak-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.1);
+}
+
+.speak-btn:active {
+  transform: scale(0.95);
+}
+
+.speak-btn i {
+  font-size: var(--font-size-xs);
 }
 
 /* Error State */
@@ -643,6 +684,16 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-xs);
+  }
+  
+  .pronunciation-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .speak-btn {
+    width: 32px;
+    height: 32px;
   }
   
   .quote-text {
