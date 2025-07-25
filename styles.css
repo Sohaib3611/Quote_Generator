@@ -72,6 +72,20 @@
   --bg-overlay: linear-gradient(135deg, #374151 0%, #111827 100%);
 }
 
+/* Dark mode specific quote styling for better visibility */
+[data-theme="dark"] .quote-icon i {
+  color: #818cf8; /* Lighter indigo */
+  opacity: 0.8;
+  text-shadow: 0 0 8px rgba(129, 140, 248, 0.3);
+}
+
+[data-theme="dark"] .quote-text::before,
+[data-theme="dark"] .quote-text::after {
+  color: #818cf8; /* Lighter indigo */
+  opacity: 0.9;
+  text-shadow: 0 0 4px rgba(129, 140, 248, 0.4);
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
