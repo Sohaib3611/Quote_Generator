@@ -16,10 +16,17 @@ Preferred communication style: Simple, everyday language.
 - **Responsive Design**: Mobile-first approach with CSS Grid/Flexbox layout
 - **Component-Based CSS**: Modular CSS with custom properties for theming
 
+### Backend Architecture
+- **Express.js Server**: Node.js server handling static files and API endpoints
+- **TTS API Integration**: Secure server-side ElevenLabs API calls for voice synthesis
+- **Environment Variable Management**: Secure API key handling via server environment
+
 ### Technology Stack
 - **HTML5**: Semantic markup with accessibility considerations
 - **CSS3**: Modern CSS with custom properties, gradients, and animations
-- **Vanilla JavaScript**: ES6+ features for API handling and DOM manipulation
+- **Vanilla JavaScript**: ES6+ features for DOM manipulation and API communication
+- **Node.js/Express**: Server-side runtime and web framework
+- **ElevenLabs API**: High-quality text-to-speech with natural human voices
 - **External CDNs**: Font Awesome for icons, Google Fonts for typography
 
 ## Key Components
@@ -39,6 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **Social Sharing**: Twitter intent URL generation
 - **Quote Generation**: On-demand fetching of new quotes
 - **Theme Toggle**: Dark/light mode switching with localStorage persistence
+- **Natural Voice Pronunciation**: ElevenLabs TTS integration for human-like pronunciation of complex words
 
 ### 4. Visual Design System
 - **CSS Custom Properties**: Centralized theming with CSS variables
@@ -50,11 +58,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Flow
 
-1. **Initial Load**: App initializes and loads first quote from local database
-2. **Quote Request**: User clicks generate button → Random selection → Loading state
-3. **Quote Display**: Local data → Duplicate prevention → Update DOM → Show content
-4. **User Actions**: Copy/Share buttons → Browser APIs → User feedback
-5. **Error Handling**: Local fallbacks ensure reliable operation
+1. **Application Initialization**: 
+   - Load default quote from local database
+   - Check server health and TTS capabilities via `/api/health`
+2. **User Interaction**: User clicks "New Quote" button
+3. **Quote Selection**: JavaScript randomly selects quote from LOCAL_QUOTES array
+4. **Display Update**: DOM updated with new quote content, author, and tags
+5. **Pronunciation Features**: 
+   - Complex words identified and highlighted with pronunciation guides
+   - TTS requests sent to `/api/tts` endpoint when speaker buttons clicked
+   - Server makes secure ElevenLabs API calls with proper authentication
+   - Natural voice audio streamed back to client for playback
+6. **User Actions**: Copy to clipboard or share to Twitter functionality triggered by user
 
 ## External Dependencies
 
@@ -74,10 +89,10 @@ Preferred communication style: Simple, everyday language.
 
 ## Deployment Strategy
 
-### Static Hosting
-- **Architecture**: Pure client-side application suitable for static hosting
-- **No Backend Required**: All functionality runs in the browser
-- **CDN Friendly**: Cacheable assets with external dependency loading
+### Server-Based Hosting
+- **Architecture**: Node.js/Express server with static file serving and API endpoints
+- **Backend Required**: Server handles secure API communications and TTS generation
+- **Environment Configuration**: Requires ElevenLabs API key as environment variable
 
 ### Performance Considerations
 - **Minimal Bundle**: Three files (HTML, CSS, JS) with external CDN resources
