@@ -86,6 +86,31 @@
   text-shadow: 0 0 4px rgba(129, 140, 248, 0.4);
 }
 
+/* Dark mode pronunciation guide styling */
+[data-theme="dark"] .pronunciation-guide {
+  background: var(--bg-card);
+  border-color: var(--text-secondary);
+}
+
+[data-theme="dark"] .pronunciation-entry {
+  background: var(--bg-secondary);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .pronunciation-entry .pronunciation {
+  background: rgba(129, 140, 248, 0.2);
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .complex-word {
+  background: linear-gradient(120deg, #818cf8 0%, #818cf8 100%);
+}
+
+[data-theme="dark"] .complex-word:hover {
+  background-color: #818cf8;
+  color: var(--bg-primary);
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -321,6 +346,83 @@ body {
   text-transform: capitalize;
 }
 
+/* Complex Words Highlighting */
+.complex-word {
+  background: linear-gradient(120deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 0.2em;
+  background-position: 0 88%;
+  cursor: help;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  margin: 0 1px;
+}
+
+.complex-word:hover {
+  background-color: var(--primary-color);
+  color: var(--text-white);
+  background-size: 100% 100%;
+  background-position: 0 0;
+  transform: scale(1.05);
+}
+
+/* Pronunciation Guide */
+.pronunciation-guide {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--text-light);
+  border-style: dashed;
+}
+
+.pronunciation-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.pronunciation-header i {
+  color: var(--primary-color);
+}
+
+.pronunciation-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.pronunciation-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pronunciation-entry .word {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.pronunciation-entry .pronunciation {
+  font-family: 'Courier New', monospace;
+  color: var(--primary-color);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: rgba(79, 70, 229, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
 /* Error State */
 .error-state {
   text-align: center;
@@ -531,6 +633,16 @@ body {
   .quote-card {
     padding: var(--space-xl);
     min-height: 250px;
+  }
+  
+  .pronunciation-guide {
+    padding: var(--space-sm);
+  }
+  
+  .pronunciation-entry {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
   }
   
   .quote-text {

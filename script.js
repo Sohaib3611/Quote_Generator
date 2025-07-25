@@ -95,6 +95,31 @@ const LOCAL_QUOTES = [
     }
 ];
 
+// Pronunciation dictionary for complex words found in quotes
+const PRONUNCIATION_GUIDE = {
+    // Common complex words that might appear in quotes
+    "distinguish": "di-STING-gwish",
+    "distinguishes": "di-STING-gwish-ez",
+    "innovation": "in-uh-VAY-shuhn",
+    "perseverance": "pur-suh-VEER-uhns",
+    "opportunity": "op-er-TOO-ni-tee",
+    "disappointed": "dis-uh-POINT-ed",
+    "authenticity": "aw-then-TIS-i-tee",
+    "churchill": "CHUR-chill",
+    "roosevelt": "ROH-zuh-velt",
+    "emerson": "EM-er-suhn",
+    "aristotle": "AR-i-stot-l",
+    "washington": "WASH-ing-tuhn",
+    "booker": "BOOK-er",
+    "believe": "bi-LEEV",
+    "destined": "DES-tind",
+    "impossible": "im-POS-uh-buhl",
+    "journey": "JUR-nee",
+    "difficulty": "DIF-i-kuhl-tee",
+    "courage": "KUR-ij",
+    "continue": "kuhn-TIN-yoo"
+};
+
 // API Configuration (keeping for potential future use)
 const API_CONFIG = {
     BASE_URL: 'https://zenquotes.io',
@@ -122,6 +147,8 @@ const elements = {
     quoteText: document.getElementById('quoteText'),
     quoteAuthor: document.getElementById('quoteAuthor'),
     quoteTags: document.getElementById('quoteTags'),
+    pronunciationGuide: document.getElementById('pronunciationGuide'),
+    pronunciationList: document.getElementById('pronunciationList'),
     
     // Action buttons
     newQuoteBtn: document.getElementById('newQuoteBtn'),
@@ -322,14 +349,19 @@ class QuoteGenerator {
         try {
             console.log('🎨 Displaying quote...');
 
-            // Update quote text
-            elements.quoteText.textContent = quote.content;
+            // Process quote text for pronunciation highlighting
+            const processedQuoteText = this.highlightComplexWords(quote.content);
+            elements.quoteText.innerHTML = processedQuoteText;
             
-            // Update author
-            elements.quoteAuthor.textContent = quote.author;
+            // Update author with pronunciation if needed
+            const processedAuthor = this.highlightComplexWords(quote.author);
+            elements.quoteAuthor.innerHTML = processedAuthor;
             
             // Update tags if they exist
             this.displayTags(quote.tags || []);
+            
+            // Generate and display pronunciation guide
+            this.displayPronunciationGuide(quote.content + ' ' + quote.author);
             
             // Show quote content and hide other states
             this.showQuoteContent();
@@ -369,6 +401,76 @@ class QuoteGenerator {
 
         // Show tags container
         elements.quoteTags.style.display = 'flex';
+    }
+
+    /**
+     * Highlight complex words in text with pronunciation tooltips
+     * @param {string} text - The text to process
+     * @returns {string} HTML string with highlighted words
+     */
+    highlightComplexWords(text) {
+        let processedText = text;
+        
+        // Find complex words in the text
+        Object.keys(PRONUNCIATION_GUIDE).forEach(word => {
+            const pronunciation = PRONUNCIATION_GUIDE[word];
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            
+            // Replace with highlighted version
+            processedText = processedText.replace(regex, (match) => {
+                return `<span class="complex-word" data-pronunciation="${pronunciation}" title="Click for pronunciation: ${pronunciation}">${match}</span>`;
+            });
+        });
+        
+        return processedText;
+    }
+
+    /**
+     * Display pronunciation guide for complex words found in the quote
+     * @param {string} fullText - The complete text (quote + author) to analyze
+     */
+    displayPronunciationGuide(fullText) {
+        const foundWords = [];
+        
+        // Find all complex words in the text
+        Object.keys(PRONUNCIATION_GUIDE).forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            if (regex.test(fullText)) {
+                const pronunciation = PRONUNCIATION_GUIDE[word];
+                // Avoid duplicates and maintain original casing
+                const matches = fullText.match(regex);
+                if (matches && !foundWords.some(fw => fw.word.toLowerCase() === word.toLowerCase())) {
+                    foundWords.push({
+                        word: matches[0], // Use the actual match to preserve casing
+                        pronunciation: pronunciation
+                    });
+                }
+            }
+        });
+        
+        // Clear pronunciation list
+        elements.pronunciationList.innerHTML = '';
+        
+        if (foundWords.length === 0) {
+            elements.pronunciationGuide.style.display = 'none';
+            return;
+        }
+        
+        // Create pronunciation entries
+        foundWords.forEach(wordData => {
+            const entryElement = document.createElement('div');
+            entryElement.className = 'pronunciation-entry';
+            entryElement.innerHTML = `
+                <span class="word">${wordData.word}</span>
+                <span class="pronunciation">${wordData.pronunciation}</span>
+            `;
+            elements.pronunciationList.appendChild(entryElement);
+        });
+        
+        // Show pronunciation guide
+        elements.pronunciationGuide.style.display = 'block';
+        
+        console.log(`📢 Found ${foundWords.length} complex words with pronunciation guides`);
     }
 
     /**
