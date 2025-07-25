@@ -16,14 +16,92 @@
  * Purpose: JavaScript learning and API integration practice
  */
 
-// API Configuration
+// Local quotes database (fallback for reliable functionality)
+const LOCAL_QUOTES = [
+    {
+        content: "The only way to do great work is to love what you do.",
+        author: "Steve Jobs",
+        tags: ["motivation", "work", "passion"]
+    },
+    {
+        content: "Innovation distinguishes between a leader and a follower.",
+        author: "Steve Jobs", 
+        tags: ["innovation", "leadership"]
+    },
+    {
+        content: "Life is what happens to you while you're busy making other plans.",
+        author: "John Lennon",
+        tags: ["life", "wisdom"]
+    },
+    {
+        content: "The future belongs to those who believe in the beauty of their dreams.",
+        author: "Eleanor Roosevelt",
+        tags: ["dreams", "future", "inspiration"]
+    },
+    {
+        content: "It is during our darkest moments that we must focus to see the light.",
+        author: "Aristotle",
+        tags: ["hope", "perseverance", "wisdom"]
+    },
+    {
+        content: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        author: "Winston Churchill",
+        tags: ["success", "courage", "perseverance"]
+    },
+    {
+        content: "The only impossible journey is the one you never begin.",
+        author: "Tony Robbins",
+        tags: ["motivation", "action", "inspiration"]
+    },
+    {
+        content: "In the middle of difficulty lies opportunity.",
+        author: "Albert Einstein",
+        tags: ["opportunity", "challenges", "wisdom"]
+    },
+    {
+        content: "Believe you can and you're halfway there.",
+        author: "Theodore Roosevelt",
+        tags: ["belief", "confidence", "motivation"]
+    },
+    {
+        content: "The only person you are destined to become is the person you decide to be.",
+        author: "Ralph Waldo Emerson",
+        tags: ["self-improvement", "destiny", "choice"]
+    },
+    {
+        content: "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+        author: "Ralph Waldo Emerson",
+        tags: ["inner strength", "wisdom", "perspective"]
+    },
+    {
+        content: "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+        author: "Ralph Waldo Emerson",
+        tags: ["leadership", "innovation", "courage"]
+    },
+    {
+        content: "Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do.",
+        author: "Mark Twain",
+        tags: ["action", "regret", "motivation"]
+    },
+    {
+        content: "Your time is limited, don't waste it living someone else's life.",
+        author: "Steve Jobs",
+        tags: ["time", "authenticity", "life"]
+    },
+    {
+        content: "If you want to lift yourself up, lift up someone else.",
+        author: "Booker T. Washington",
+        tags: ["helping others", "leadership", "growth"]
+    }
+];
+
+// API Configuration (keeping for potential future use)
 const API_CONFIG = {
     BASE_URL: 'https://zenquotes.io',
     ENDPOINTS: {
         RANDOM: '/api/random'
     },
-    // ZenQuotes doesn't support filtering parameters, but provides good inspirational quotes
-    PARAMS: {}
+    USE_LOCAL: true // Use local quotes for reliability
 };
 
 // Twitter sharing configuration
@@ -156,7 +234,7 @@ class QuoteGenerator {
     }
 
     /**
-     * Fetch a new random quote from the API
+     * Fetch a new random quote (using local database for reliability)
      */
     async fetchNewQuote() {
         try {
@@ -167,45 +245,32 @@ class QuoteGenerator {
             this.showLoadingState();
             this.setButtonLoadingState(elements.newQuoteBtn, true);
 
-            // Build API URL with parameters
-            const url = this.buildApiUrl();
+            // Simulate loading delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Get random quote from local database
+            const randomIndex = Math.floor(Math.random() * LOCAL_QUOTES.length);
+            const selectedQuote = LOCAL_QUOTES[randomIndex];
             
-            // Fetch quote with timeout
-            const response = await this.fetchWithTimeout(url, 10000); // 10 second timeout
-            
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Ensure we don't show the same quote twice in a row
+            if (currentQuote && selectedQuote.content === currentQuote.content && LOCAL_QUOTES.length > 1) {
+                // Find a different quote
+                let newIndex = randomIndex;
+                while (newIndex === randomIndex) {
+                    newIndex = Math.floor(Math.random() * LOCAL_QUOTES.length);
+                }
+                const differentQuote = LOCAL_QUOTES[newIndex];
+                currentQuote = differentQuote;
+                this.displayQuote(differentQuote);
+            } else {
+                currentQuote = selectedQuote;
+                this.displayQuote(selectedQuote);
             }
-
-            // Parse JSON response (ZenQuotes returns an array)
-            const responseData = await response.json();
             
-            // Extract the first quote from the array
-            const quoteData = Array.isArray(responseData) ? responseData[0] : responseData;
-            
-            // Validate quote data
-            if (!this.validateQuoteData(quoteData)) {
-                throw new Error('Invalid quote data received from API');
-            }
-
-            // Convert ZenQuotes format to our internal format
-            const normalizedQuote = {
-                content: quoteData.q,
-                author: quoteData.a,
-                tags: [] // ZenQuotes doesn't provide tags in this format
-            };
-
-            // Store current quote
-            currentQuote = normalizedQuote;
-            
-            // Display the quote
-            this.displayQuote(normalizedQuote);
-            
-            console.log('✅ Quote fetched successfully:', normalizedQuote.content.substring(0, 50) + '...');
+            console.log('✅ Quote loaded successfully:', currentQuote.content.substring(0, 50) + '...');
 
         } catch (error) {
-            console.error('❌ Error fetching quote:', error);
+            console.error('❌ Error loading quote:', error);
             this.handleFetchError(error);
         } finally {
             // Reset loading state
@@ -214,58 +279,7 @@ class QuoteGenerator {
         }
     }
 
-    /**
-     * Build API URL (ZenQuotes API doesn't require parameters)
-     * @returns {string} The complete API URL
-     */
-    buildApiUrl() {
-        return `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RANDOM}`;
-    }
 
-    /**
-     * Fetch with timeout to prevent hanging requests
-     * @param {string} url - The URL to fetch
-     * @param {number} timeout - Timeout in milliseconds
-     * @returns {Promise<Response>} The fetch response
-     */
-    async fetchWithTimeout(url, timeout = 8000) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-        try {
-            const response = await fetch(url, {
-                signal: controller.signal,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            clearTimeout(timeoutId);
-            return response;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
-                throw new Error('Request timed out. Please check your internet connection.');
-            }
-            throw error;
-        }
-    }
-
-    /**
-     * Validate quote data received from ZenQuotes API
-     * @param {Object} quoteData - The quote data to validate
-     * @returns {boolean} True if valid, false otherwise
-     */
-    validateQuoteData(quoteData) {
-        return (
-            quoteData &&
-            typeof quoteData === 'object' &&
-            typeof quoteData.q === 'string' &&
-            quoteData.q.trim().length > 0 &&
-            typeof quoteData.a === 'string' &&
-            quoteData.a.trim().length > 0
-        );
-    }
 
     /**
      * Display a quote in the UI
