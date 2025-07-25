@@ -16,10 +16,17 @@ Preferred communication style: Simple, everyday language.
 - **Responsive Design**: Mobile-first approach with CSS Grid/Flexbox layout
 - **Component-Based CSS**: Modular CSS with custom properties for theming
 
+### Backend Architecture
+- **Express.js Server**: Node.js server handling static files and API endpoints
+- **TTS API Integration**: Secure server-side ElevenLabs API calls for voice synthesis
+- **Environment Variable Management**: Secure API key handling via server environment
+
 ### Technology Stack
 - **HTML5**: Semantic markup with accessibility considerations
 - **CSS3**: Modern CSS with custom properties, gradients, and animations
-- **Vanilla JavaScript**: ES6+ features for DOM manipulation and local data handling
+- **Vanilla JavaScript**: ES6+ features for DOM manipulation and API communication
+- **Node.js/Express**: Server-side runtime and web framework
+- **ElevenLabs API**: High-quality text-to-speech with natural human voices
 - **External CDNs**: Font Awesome for icons, Google Fonts for typography
 
 ## Key Components
@@ -39,6 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **Social Sharing**: Twitter intent URL generation for quote sharing
 - **Quote Generation**: On-demand selection of new quotes from local database
 - **Theme Toggle**: Dark/light mode switching with localStorage persistence
+- **Natural Voice Pronunciation**: ElevenLabs TTS integration for human-like pronunciation of complex words
 
 ### 4. Visual Design System
 - **CSS Custom Properties**: Centralized theming with CSS variables for colors, spacing, and typography
@@ -49,11 +57,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Flow
 
-1. **Application Initialization**: Load default quote from local database
+1. **Application Initialization**: 
+   - Load default quote from local database
+   - Check server health and TTS capabilities via `/api/health`
 2. **User Interaction**: User clicks "New Quote" button
 3. **Quote Selection**: JavaScript randomly selects quote from LOCAL_QUOTES array
 4. **Display Update**: DOM updated with new quote content, author, and tags
-5. **User Actions**: Copy to clipboard or share to Twitter functionality triggered by user
+5. **Pronunciation Features**: 
+   - Complex words identified and highlighted
+   - TTS requests sent to `/api/tts` endpoint
+   - Server makes secure ElevenLabs API calls
+   - Natural voice audio streamed back to client
+6. **User Actions**: Copy to clipboard or share to Twitter functionality triggered by user
 
 ## External Dependencies
 
