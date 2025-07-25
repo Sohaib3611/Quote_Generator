@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a lightweight, client-side web application that generates and displays inspirational quotes. The app fetches random quotes from the Quotable API and provides users with sharing capabilities including copy-to-clipboard and Twitter integration. Built with vanilla HTML, CSS, and JavaScript, it focuses on simplicity, performance, and user experience.
+This is a lightweight, client-side web application that generates and displays inspirational quotes. The app uses a curated local database of inspirational quotes and provides users with sharing capabilities including copy-to-clipboard and Twitter integration. Built with vanilla HTML, CSS, and JavaScript, it focuses on simplicity, performance, and user experience with reliable quote delivery.
 
 ## User Preferences
 
@@ -29,10 +29,10 @@ Preferred communication style: Simple, everyday language.
 - **Loading States**: Spinner animation during API requests
 - **Error Handling**: User-friendly error messages for API failures
 
-### 2. API Integration
-- **Quotable API**: Third-party service for fetching inspirational quotes
-- **Configuration-Driven**: Centralized API settings with customizable parameters
-- **Error Recovery**: Graceful handling of network failures and API errors
+### 2. Quote Management System
+- **Local Quote Database**: Curated collection of 15 inspirational quotes from famous figures
+- **Smart Selection**: Randomized quote selection with duplicate prevention logic
+- **Reliable Delivery**: No external dependencies ensuring consistent functionality
 
 ### 3. User Interaction Features
 - **Copy to Clipboard**: Browser Clipboard API integration
@@ -47,11 +47,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Flow
 
-1. **Initial Load**: App initializes and fetches first quote from Quotable API
-2. **Quote Request**: User clicks generate button → API request → Loading state
-3. **Quote Display**: API response → Parse data → Update DOM → Show content
+1. **Initial Load**: App initializes and loads first quote from local database
+2. **Quote Request**: User clicks generate button → Random selection → Loading state
+3. **Quote Display**: Local data → Duplicate prevention → Update DOM → Show content
 4. **User Actions**: Copy/Share buttons → Browser APIs → User feedback
-5. **Error Handling**: API failures → Error state → Retry options
+5. **Error Handling**: Local fallbacks ensure reliable operation
 
 ## External Dependencies
 
