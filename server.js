@@ -6,9 +6,9 @@
  */
 
 const express = require('express');
-const fetch = require('node-fetch');
 const path = require('path');
 const cors = require('cors');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,34 +49,59 @@ app.post('/api/tts', async (req, res) => {
 
         console.log(`🔊 Generating TTS for: "${text}"`);
 
-        // Make request to ElevenLabs API
-        const response = await fetch(`${ELEVENLABS_CONFIG.BASE_URL}/text-to-speech/${ELEVENLABS_CONFIG.VOICE_ID}`, {
+        // Prepare request data
+        const postData = JSON.stringify({
+            text: text,
+            model_id: 'eleven_monolingual_v1',
+            voice_settings: ELEVENLABS_CONFIG.VOICE_SETTINGS
+        });
+
+        const options = {
+            hostname: 'api.elevenlabs.io',
+            port: 443,
+            path: `/v1/text-to-speech/${ELEVENLABS_CONFIG.VOICE_ID}`,
             method: 'POST',
             headers: {
                 'Accept': 'audio/mpeg',
                 'Content-Type': 'application/json',
-                'xi-api-key': apiKey
-            },
-            body: JSON.stringify({
-                text: text,
-                model_id: 'eleven_monolingual_v1',
-                voice_settings: ELEVENLABS_CONFIG.VOICE_SETTINGS
-            })
+                'xi-api-key': apiKey,
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        // Make HTTPS request to ElevenLabs API
+        const apiRequest = https.request(options, (apiResponse) => {
+            console.log(`ElevenLabs API status: ${apiResponse.statusCode}`);
+            
+            if (apiResponse.statusCode !== 200) {
+                let errorData = '';
+                apiResponse.on('data', (chunk) => {
+                    errorData += chunk;
+                });
+                apiResponse.on('end', () => {
+                    console.error(`❌ ElevenLabs API error: ${apiResponse.statusCode}`, errorData);
+                    res.status(apiResponse.statusCode).json({ 
+                        error: `ElevenLabs API error: ${apiResponse.statusCode}` 
+                    });
+                });
+                return;
+            }
+
+            // Stream the audio response directly to client
+            res.setHeader('Content-Type', 'audio/mpeg');
+            res.setHeader('Content-Disposition', 'inline');
+            
+            apiResponse.pipe(res);
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`❌ ElevenLabs API error: ${response.status} ${response.statusText}`, errorText);
-            return res.status(response.status).json({ 
-                error: `ElevenLabs API error: ${response.status} ${response.statusText}` 
-            });
-        }
+        apiRequest.on('error', (error) => {
+            console.error('❌ HTTPS request error:', error);
+            res.status(500).json({ error: 'Network error connecting to ElevenLabs' });
+        });
 
-        // Stream the audio response
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Content-Disposition', 'inline');
-        
-        response.body.pipe(res);
+        // Send the request data
+        apiRequest.write(postData);
+        apiRequest.end();
         
         console.log(`✅ TTS generated successfully for: "${text}"`);
 
