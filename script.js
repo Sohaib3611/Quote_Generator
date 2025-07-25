@@ -135,6 +135,19 @@ const TWITTER_CONFIG = {
     HASHTAGS: 'motivation,inspiration,quotes,dailyquote'
 };
 
+// ElevenLabs TTS Configuration
+const ELEVENLABS_CONFIG = {
+    BASE_URL: 'https://api.elevenlabs.io/v1',
+    // Using Rachel voice - natural, clear female voice perfect for pronunciation
+    VOICE_ID: '21m00Tcm4TlvDq8ikWAM', // Rachel voice
+    VOICE_SETTINGS: {
+        stability: 0.75,
+        similarity_boost: 0.75,
+        style: 0.0,
+        use_speaker_boost: true
+    }
+};
+
 // DOM Elements - Cache frequently used elements for better performance
 const elements = {
     // Main containers
@@ -170,18 +183,34 @@ let currentQuote = null;
 let isLoading = false;
 let currentTheme = 'light';
 
-// Speech synthesis setup
-let speechSynthesis = null;
-let speechSupported = false;
+// TTS setup - ElevenLabs integration
+let ttsSupported = false;
+let currentAudio = null; // Track current audio playback
 
-// Initialize speech synthesis
-if ('speechSynthesis' in window) {
-    speechSynthesis = window.speechSynthesis;
-    speechSupported = true;
-    console.log('🔊 Text-to-speech supported');
-} else {
-    console.log('❌ Text-to-speech not supported in this browser');
+// Initialize TTS system by checking server health
+async function initializeTTS() {
+    try {
+        console.log('🔊 Checking TTS server capabilities...');
+        
+        // Check server health and TTS availability
+        const response = await fetch('/api/health');
+        const health = await response.json();
+        
+        if (health.features && health.features.elevenlabs_tts) {
+            ttsSupported = true;
+            console.log('🔊 ElevenLabs TTS ready with natural human voices');
+        } else {
+            ttsSupported = false;
+            console.log('⚠️ ElevenLabs TTS not available - check API configuration');
+        }
+    } catch (error) {
+        console.error('❌ Error checking TTS availability:', error);
+        ttsSupported = false;
+    }
 }
+
+// Initialize TTS on page load
+initializeTTS();
 
 /**
  * Quote Generator Class
@@ -477,12 +506,12 @@ class QuoteGenerator {
                 <span class="word">${wordData.word}</span>
                 <div class="pronunciation-controls">
                     <span class="pronunciation">${wordData.pronunciation}</span>
-                    ${speechSupported ? '<button class="speak-btn" aria-label="Listen to pronunciation"><i class="fas fa-volume-up"></i></button>' : ''}
+                    ${ttsSupported ? '<button class="speak-btn" aria-label="Listen to pronunciation"><i class="fas fa-volume-up"></i></button>' : ''}
                 </div>
             `;
             
             // Add click event for speech synthesis
-            if (speechSupported) {
+            if (ttsSupported) {
                 const speakBtn = entryElement.querySelector('.speak-btn');
                 speakBtn.addEventListener('click', () => {
                     this.pronounceWord(wordData.word);
@@ -499,53 +528,93 @@ class QuoteGenerator {
     }
 
     /**
-     * Pronounce a word using text-to-speech
+     * Pronounce a word using ElevenLabs high-quality TTS
      * @param {string} word - The word to pronounce
      */
-    pronounceWord(word) {
-        if (!speechSupported || !speechSynthesis) {
-            this.showToast('Text-to-speech not supported in this browser', 'warning');
+    async pronounceWord(word) {
+        if (!ttsSupported) {
+            this.showToast('High-quality text-to-speech not available', 'warning');
             return;
         }
 
         try {
-            // Stop any ongoing speech
-            speechSynthesis.cancel();
+            // Stop any current audio playback
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
 
-            // Create speech utterance
-            const utterance = new SpeechSynthesisUtterance(word);
+            console.log(`🔊 Generating speech for: ${word}`);
+            this.showToast(`Generating pronunciation for "${word}"...`, 'info');
+
+            // Generate speech using ElevenLabs API
+            const audioBlob = await this.generateElevenLabsSpeech(word);
             
-            // Configure speech settings
-            utterance.rate = 0.7; // Slower for clarity
-            utterance.pitch = 1.0;
-            utterance.volume = 0.8;
+            if (!audioBlob) {
+                throw new Error('Failed to generate speech');
+            }
+
+            // Create audio URL and play
+            const audioUrl = URL.createObjectURL(audioBlob);
+            currentAudio = new Audio(audioUrl);
             
-            // Set language to US English for consistent pronunciation
-            utterance.lang = 'en-US';
+            // Configure audio settings
+            currentAudio.volume = 0.8;
             
             // Add event listeners
-            utterance.onstart = () => {
-                console.log(`🔊 Speaking: ${word}`);
+            currentAudio.onplay = () => {
+                console.log(`🔊 Playing ElevenLabs voice: ${word}`);
             };
             
-            utterance.onerror = (event) => {
-                console.error('❌ Speech synthesis error:', event.error);
+            currentAudio.onerror = (event) => {
+                console.error('❌ Audio playback error:', event);
                 this.showToast('Error playing pronunciation', 'error');
             };
             
-            utterance.onend = () => {
+            currentAudio.onended = () => {
                 console.log(`✅ Finished speaking: ${word}`);
+                URL.revokeObjectURL(audioUrl); // Clean up memory
+                currentAudio = null;
             };
 
-            // Speak the word
-            speechSynthesis.speak(utterance);
+            // Play the audio
+            await currentAudio.play();
             
-            // Show feedback
-            this.showToast(`Playing pronunciation for "${word}"`, 'info');
+            // Update feedback
+            this.showToast(`Playing natural voice pronunciation`, 'success');
 
         } catch (error) {
-            console.error('❌ Error with speech synthesis:', error);
-            this.showToast('Error playing pronunciation', 'error');
+            console.error('❌ Error with ElevenLabs TTS:', error);
+            this.showToast('Error generating pronunciation', 'error');
+        }
+    }
+
+    /**
+     * Generate speech using our server's TTS endpoint
+     * @param {string} text - Text to convert to speech
+     * @returns {Promise<Blob>} Audio blob
+     */
+    async generateElevenLabsSpeech(text) {
+        try {
+            const response = await fetch('/api/tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('❌ TTS server error:', error);
+            throw error;
         }
     }
 
