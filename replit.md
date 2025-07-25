@@ -38,12 +38,15 @@ Preferred communication style: Simple, everyday language.
 - **Copy to Clipboard**: Browser Clipboard API integration
 - **Social Sharing**: Twitter intent URL generation
 - **Quote Generation**: On-demand fetching of new quotes
+- **Theme Toggle**: Dark/light mode switching with localStorage persistence
 
 ### 4. Visual Design System
 - **CSS Custom Properties**: Centralized theming with CSS variables
+- **Dual Theme Support**: Light and dark mode with optimized contrast
 - **Gradient Backgrounds**: Dynamic visual appeal with CSS gradients
 - **Typography**: Inter font family for modern, readable text
 - **Icon System**: Font Awesome integration for consistent iconography
+- **Enhanced Visibility**: Dark mode optimizations for quote symbols and UI elements
 
 ## Data Flow
 
