@@ -128,6 +128,10 @@ const elements = {
     copyBtn: document.getElementById('copyBtn'),
     tweetBtn: document.getElementById('tweetBtn'),
     
+    // Theme toggle
+    themeToggle: document.getElementById('themeToggle'),
+    themeIcon: document.getElementById('themeIcon'),
+    
     // Notification elements
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toastMessage'),
@@ -137,6 +141,7 @@ const elements = {
 // Application State
 let currentQuote = null;
 let isLoading = false;
+let currentTheme = 'light';
 
 /**
  * Quote Generator Class
@@ -144,8 +149,27 @@ let isLoading = false;
  */
 class QuoteGenerator {
     constructor() {
+        this.initializeTheme();
         this.initializeApp();
         this.attachEventListeners();
+    }
+
+    /**
+     * Initialize theme system
+     * Load saved theme preference or default to light mode
+     */
+    initializeTheme() {
+        // Check for saved theme preference or default to 'light'
+        const savedTheme = localStorage.getItem('quote-generator-theme') || 'light';
+        currentTheme = savedTheme;
+        
+        // Apply theme to document
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        // Update theme icon
+        this.updateThemeIcon();
+        
+        console.log(`🎨 Theme initialized: ${currentTheme} mode`);
     }
 
     /**
@@ -181,6 +205,11 @@ class QuoteGenerator {
         // Tweet button
         elements.tweetBtn.addEventListener('click', () => {
             this.handleTweetClick();
+        });
+
+        // Theme toggle button
+        elements.themeToggle.addEventListener('click', () => {
+            this.handleThemeToggle();
         });
 
         // Keyboard shortcuts
@@ -229,6 +258,10 @@ class QuoteGenerator {
                 if (currentQuote && !isLoading) {
                     this.handleTweetClick();
                 }
+                break;
+            case 'd':
+                event.preventDefault();
+                this.handleThemeToggle();
                 break;
         }
     }
@@ -336,6 +369,40 @@ class QuoteGenerator {
 
         // Show tags container
         elements.quoteTags.style.display = 'flex';
+    }
+
+    /**
+     * Handle theme toggle button click
+     */
+    handleThemeToggle() {
+        // Toggle between light and dark
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        // Apply new theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        // Save theme preference
+        localStorage.setItem('quote-generator-theme', currentTheme);
+        
+        // Update icon
+        this.updateThemeIcon();
+        
+        // Show feedback
+        const themeText = currentTheme === 'dark' ? 'Dark' : 'Light';
+        this.showToast(`${themeText} mode activated`, 'info');
+        
+        console.log(`🎨 Theme switched to: ${currentTheme} mode`);
+    }
+
+    /**
+     * Update theme toggle icon based on current theme
+     */
+    updateThemeIcon() {
+        if (currentTheme === 'dark') {
+            elements.themeIcon.className = 'fas fa-sun';
+        } else {
+            elements.themeIcon.className = 'fas fa-moon';
+        }
     }
 
     /**
