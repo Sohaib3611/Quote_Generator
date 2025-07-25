@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Generator - Daily Motivation</title>
+    <meta name="description" content="Get inspired with random motivational quotes. Generate, copy, and share inspiring quotes daily.">
+    
+    <!-- Favicon using SVG icon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21c3 0 5-1 5-8V5c0-3-3-3-3-3s-3 0-3 3v8c0 7 2 8 5 8z'/%3E%3Cpath d='M16 21c3 0 5-1 5-8V5c0-3-3-3-3-3s-3 0-3 3v8c0 7 2 8 5 8z'/%3E%3C/svg%3E">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background gradient overlay -->
+    <div class="bg-overlay"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-quote-left"></i>
+                <h1>Quote Generator</h1>
+            </div>
+            <p class="tagline">Find your daily dose of inspiration</p>
+        </header>
+
+        <!-- Quote Card -->
+        <main class="quote-card" id="quoteCard">
+            <!-- Loading State -->
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <p>Fetching inspiration...</p>
+            </div>
+
+            <!-- Quote Content -->
+            <div class="quote-content" id="quoteContent" style="display: none;">
+                <div class="quote-icon">
+                    <i class="fas fa-quote-left"></i>
+                </div>
+                
+                <blockquote class="quote-text" id="quoteText">
+                    <!-- Quote will be inserted here -->
+                </blockquote>
+                
+                <cite class="quote-author" id="quoteAuthor">
+                    <!-- Author will be inserted here -->
+                </cite>
+                
+                <div class="quote-tags" id="quoteTags">
+                    <!-- Tags will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="errorState" style="display: none;">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Oops! Something went wrong</h3>
+                <p id="errorMessage">Unable to fetch quotes at the moment. Please check your connection and try again.</p>
+            </div>
+        </main>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-primary" id="newQuoteBtn">
+                <i class="fas fa-sync-alt"></i>
+                <span>New Quote</span>
+            </button>
+            
+            <button class="btn btn-secondary" id="copyBtn" style="display: none;">
+                <i class="fas fa-copy"></i>
+                <span>Copy</span>
+            </button>
+            
+            <button class="btn btn-secondary" id="tweetBtn" style="display: none;">
+                <i class="fab fa-twitter"></i>
+                <span>Tweet</span>
+            </button>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Quote copied to clipboard!</span>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <a href="https://quotable.io" target="_blank" rel="noopener">Quotable API</a></p>
+            <p class="credit">Built with ❤️ for daily motivation</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
